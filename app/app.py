@@ -6,30 +6,19 @@ import os
 
 app = Flask(__name__)
 
-# Setup MinIO client using environment variables
-minioClient = Minio(
-    endpoint = os.getenv('MINIO_ENDPOINT'),
-    access_key = os.getenv('MINIO_ACCESS_KEY'),
-    secret_key =os.getenv('MINIO_SECRET_KEY')
-)
-
 @app.route('/')
 def index():
-    try:
-        # List all objects in the bucket
-        objects = minioClient.list_objects("music-bucket", recursive=True)
-        music_files = []
-        for obj in objects:
-            # Generate a presigned URL for each music file with appropriate content type for streaming
-            url = minioClient.presigned_get_object("music-bucket", obj.object_name, expires=timedelta(hours=1), response_headers={"response-content-type": "audio/mpeg"})
-            music_files.append((obj.object_name, url))
-        return render_template('index.html', music_files=music_files)
-    
-    except S3Error as exc:
-        print("Error occurred.", exc)
-        return "Error in fetching music files", 500
+    # This is a temporary list of music files for testing.
+    # We are using this to bypass the MinIO connection issue and confirm the pipeline works.
+    music_files = [
+        ("Test Song 1 - Artist A", "#"),
+        ("Test Song 2 - Artist B", "#"),
+        ("Test Song 3 - Artist C", "#")
+    ]
+    # The render_template function looks for the file in a 'templates' folder.
+    return render_template('index.html', music_files=music_files)
 
 if __name__ == '__main__':
-    app.run(debug = True, 
-            host = '0.0.0.0', 
+    app.run(debug = True,
+            host = '0.0.0.0',
             port = 5000)
