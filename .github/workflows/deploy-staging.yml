@@ -1,0 +1,27 @@
+name: Deploy Staging 🚀
+on:
+  push:
+    branches: [ main ]
+jobs:
+  deploy-to-staging-server:
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy to staging server via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST_STAGING }}
+          username: ${{ secrets.SSH_USER_NAME_STAGING }}
+          key: ${{ secrets.SSH_PRIVATE_KEY_STAGING }}
+          script: |
+            export APP_STG_PORT=${{ secrets.APP_STG_PORT }}
+            export MINIO_STG_ENDPOINT=${{ secrets.MINIO_STG_ENDPOINT }}
+            export MINIO_STG_ACCESS_KEY=${{ secrets.MINIO_STG_ACCESS_KEY }}
+            export MINIO_STG_SECRET_KEY=${{ secrets.MINIO_STG_SECRET_KEY }}
+            cd ${{ vars.APP_STG_PATH }}
+            bash ./deploy/deploy-staging.sh
+      - name: Test deployed application endpoint
+        run: |
+          sleep 10
+          curl -v ${{ secrets.STG_URL }}

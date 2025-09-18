@@ -1,0 +1,21 @@
+name: Dev Testing 🔎
+on:
+  pull_request:
+    branches: [ main ]
+jobs:
+  build-and-testing:
+    runs-on: ubuntu-latest
+    environment: dev-testing
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create .env file for testing
+        run: |
+          echo "MINIO_DEV_ENDPOINT=${{ secrets.MINIO_DEV_ENDPOINT }}" >> .env
+          echo "MINIO_DEV_ACCESS_KEY=${{ secrets.MINIO_DEV_ACCESS_KEY }}" >> .env
+          echo "MINIO_DEV_SECRET_KEY=${{ secrets.MINIO_DEV_SECRET_KEY }}" >> .env
+      - name: Run Docker Compose for testing
+        run: docker compose up --build --detach pacmusic-dev
+      - name: Test application endpoint
+        run: |
+          sleep 10
+          curl -v http://localhost:5000

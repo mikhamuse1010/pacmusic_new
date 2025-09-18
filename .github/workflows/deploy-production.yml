@@ -1,0 +1,28 @@
+name: Deploy Production 🚀
+on:
+  release:
+    types: [published, edited]
+jobs:
+  deploy-to-production-server:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Deploy to production server via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST_PRODUCTION }}
+          username: ${{ secrets.SSH_USER_NAME_PRODUCTION }}
+          key: ${{ secrets.SSH_PRIVATE_KEY_PRODUCTION }}
+          script: |
+            export APP_IMAGE=${{ secrets.DOCKERHUB_USERNAME }}/pacmusic
+            export APP_TAG=${{ github.event.release.tag_name }}
+            export APP_PROD_PORT=${{ secrets.APP_PROD_PORT }}
+            export MINIO_PROD_ENDPOINT=${{ secrets.MINIO_PROD_ENDPOINT }}
+            export MINIO_PROD_ACCESS_KEY=${{ secrets.MINIO_PROD_ACCESS_KEY }}
+            export MINIO_PROD_SECRET_KEY=${{ secrets.MINIO_PROD_SECRET_KEY }}
+            cd ${{ vars.APP_PROD_PATH }}
+            bash ./deploy/deploy-production.sh
+      - name: Test deployed application endpoint
+        run: |
+          sleep 10
+          curl -v ${{ secrets.PROD_URL }}
