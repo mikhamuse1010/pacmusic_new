@@ -19,6 +19,7 @@ jobs:
           host: ${{ secrets.SSH_HOST_PRODUCTION }}
           username: ${{ secrets.SSH_USER_NAME_PRODUCTION }}
           key: ${{ secrets.SSH_PRIVATE_KEY_PRODUCTION }}
+          debug: true
           script: |
             # Navigate to the correct directory first.
             cd /home/ubuntu/production
