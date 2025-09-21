@@ -23,6 +23,10 @@ jobs:
             # Navigate to the correct directory first.
             cd /home/ubuntu/production
             
+            # --- DEBUGGING STEP ---
+            # Print the username variable to see what value the workflow is reading.
+            echo "DEBUG: The username from secrets is '${{ secrets.DOCKERHUB_USERNAME }}'"
+            
             # Execute the deployment script with all secrets and variables
             # passed directly into its environment. This is the most reliable method.
             DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }} \
