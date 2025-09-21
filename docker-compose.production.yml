@@ -1,0 +1,21 @@
+# This file is specifically for the production environment.
+# It only defines the 'pacmusic-prod' service to avoid conflicts.
+services:
+  pacmusic-prod:
+    # The image is specified by environment variables from the .env file
+    image: "${APP_IMAGE}:${APP_TAG}"
+    container_name: pacmusic-prod
+    environment:
+      MINIO_ENDPOINT: ${MINIO_PROD_ENDPOINT}
+      MINIO_ACCESS_KEY: ${MINIO_PROD_ACCESS_KEY}
+      MINIO_SECRET_KEY: ${MINIO_PROD_SECRET_KEY}
+    ports:
+      - "${APP_PROD_PORT}:5000"
+    networks:
+      - pacmusic-network
+
+networks:
+  pacmusic-network:
+    # This tells docker-compose to use the network that already exists
+    # instead of trying to create a new one.
+    external: true
