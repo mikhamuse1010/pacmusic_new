@@ -1,21 +1,35 @@
+# This workflow runs tests on every pull request to the main branch.
 name: Dev Testing 🔎
+
 on:
   pull_request:
-    branches: [ main ]
+    branches: [ "main" ]
+
 jobs:
   build-and-testing:
     runs-on: ubuntu-latest
     environment: dev-testing
+
     steps:
-      - uses: actions/checkout@v4
-      - name: Create .env file for testing
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # --------------------------------------------------------------------------
+      # UPDATED STEP: Switched from 'echo' to a 'here document' for reliability.
+      # This method is more robust and prevents file corruption issues.
+      # --------------------------------------------------------------------------
+      - name: Create .env file
         run: |
-          echo "MINIO_DEV_ENDPOINT=${{ secrets.MINIO_DEV_ENDPOINT }}" >> .env
-          echo "MINIO_DEV_ACCESS_KEY=${{ secrets.MINIO_DEV_ACCESS_KEY }}" >> .env
-          echo "MINIO_DEV_SECRET_KEY=${{ secrets.MINIO_DEV_SECRET_KEY }}" >> .env
+          cat <<EOF > .env
+          MINIO_DEV_ENDPOINT=${{ secrets.MINIO_DEV_ENDPOINT }}
+          MINIO_DEV_ACCESS_KEY=${{ secrets.MINIO_DEV_ACCESS_KEY }}
+          MINIO_DEV_SECRET_KEY=${{ secrets.MINIO_DEV_SECRET_KEY }}
+          EOF
+
       - name: Run Docker Compose for testing
         run: docker compose up --build --detach pacmusic-dev
-      - name: Test application endpoint
+
+      - name: Test endpoint
         run: |
           sleep 10
-          curl -v http://localhost:5000
+          curl http://localhost:5000
