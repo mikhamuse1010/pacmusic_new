@@ -32,9 +32,9 @@ jobs:
             echo "SSH Connection Successful. Proceeding with deployment..."
             cd /home/ubuntu/production
             
-            DOCKERHUB_USERNAME=${{ secrets.DOCKHOR_USERNAME }} \
-            DOCKERHUB_TOKEN=${{ secrets.DOCKHOR_TOKEN }} \
-            APP_IMAGE=${{ secrets.DOCKHOR_USERNAME }}/pacmusic \
+            DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }} \
+            DOCKERHUB_TOKEN=${{ secrets.DOCKHERHUB_TOKEN }} \
+            APP_IMAGE=${{ secrets.DOCKERHUB_USERNAME }}/pacmusic \
             APP_TAG=${{ github.ref_name }} \
             APP_PROD_PORT=${{ vars.APP_PROD_PORT }} \
             MINIO_PROD_ENDPOINT=${{ secrets.MINIO_PROD_ENDPOINT }} \
