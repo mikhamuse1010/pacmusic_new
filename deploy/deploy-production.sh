@@ -14,6 +14,13 @@ MINIO_PROD_ACCESS_KEY=${MINIO_PROD_ACCESS_KEY}
 MINIO_PROD_SECRET_KEY=${MINIO_PROD_SECRET_KEY}
 EOL
 
+# --- START DEBUGGING ---
+# Print the variables to the log to verify they are being received
+echo "DEBUG: Verifying Docker credentials..."
+echo "DEBUG: Username is: '${DOCKERHUB_USERNAME}'"
+echo "DEBUG: Token is empty: $(if [ -z "${DOCKERHUB_TOKEN}" ]; then echo "true"; else echo "false"; fi)"
+# --- END DEBUGGING ---
+
 # Log in to Docker Hub using the credentials passed as environment variables
 echo "Logging in to Docker Hub..."
 echo "${DOCKERHUB_TOKEN}" | docker login --username "${DOCKERHUB_USERNAME}" --password-stdin
