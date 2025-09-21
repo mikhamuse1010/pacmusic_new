@@ -31,6 +31,6 @@ docker pull "${APP_IMAGE}:${APP_TAG}"
 
 # Stop and restart the service with the new image
 echo "Restarting service with docker compose..."
-docker compose up -d
+docker compose -f docker-compose.production.yml up -d
 
 echo "Deployment to production finished."
