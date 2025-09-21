@@ -1,43 +1,29 @@
-# This is a new debugging version of the workflow.
-# It adds a step at the beginning to verify that the required SSH secrets
-# are being read correctly by the workflow environment.
-name: Deploy Production 🚀
+#!/bin/bash
+# This script is executed on the production server.
 
-on:
-  release:
-    types: [published, edited]
+echo "Starting deployment to production..."
 
-jobs:
-  deploy-to-production-server:
-    runs-on: ubuntu-latest
-    environment: production
+# Create a .env file with the environment variables passed from the workflow
+echo "Creating .env file..."
+cat <<EOL > .env
+APP_IMAGE=${APP_IMAGE}
+APP_TAG=${APP_TAG}
+APP_PROD_PORT=${APP_PROD_PORT}
+MINIO_PROD_ENDPOINT=${MINIO_PROD_ENDPOINT}
+MINIO_PROD_ACCESS_KEY=${MINIO_PROD_ACCESS_KEY}
+MINIO_PROD_SECRET_KEY=${MINIO_PROD_SECRET_KEY}
+EOL
 
-    steps:
-      - name: 🕵️‍♂️ Verify Secrets Before Connecting
-        run: |
-          echo "--- STARTING SECRET VERIFICATION ---"
-          echo "Host Secret Exists: ${{ secrets.SSH_HOST_PRODUCTION != '' }}"
-          echo "Username Secret Exists: ${{ secrets.SSH_USER_NAME_PRODUCTION != '' }}"
-          echo "Private Key Secret Exists: ${{ secrets.SSH_PRIVATE_KEY_PRODUCTION != '' }}"
-          echo "--- FINISHED SECRET VERIFICATION ---"
+# Log in to Docker Hub using the credentials passed as environment variables
+echo "Logging in to Docker Hub..."
+echo "${DOCKERHUB_TOKEN}" | docker login --username "${DOCKERHUB_USERNAME}" --password-stdin
 
-      - name: Deploy to production server via SSH
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.SSH_HOST_PRODUCTION }}
-          username: ${{ secrets.SSH_USER_NAME_PRODUCTION }}
-          key: ${{ secrets.SSH_PRIVATE_KEY_PRODUCTION }}
-          debug: true
-          script: |
-            echo "SSH Connection Successful. Proceeding with deployment..."
-            cd /home/ubuntu/production
-            
-            DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }} \
-            DOCKERHUB_TOKEN=${{ secrets.DOCKERHUB_TOKEN }} \
-            APP_IMAGE=${{ secrets.DOCKERHUB_USERNAME }}/pacmusic \
-            APP_TAG=${{ github.ref_name }} \
-            APP_PROD_PORT=${{ vars.APP_PROD_PORT }} \
-            MINIO_PROD_ENDPOINT=${{ secrets.MINIO_PROD_ENDPOINT }} \
-            MINIO_PROD_ACCESS_KEY=${{ secrets.MINIO_PROD_ACCESS_KEY }} \
-            MINIO_PROD_SECRET_KEY=${{ secrets.MINIO_PROD_SECRET_KEY }} \
-            bash ./deploy/deploy-production.sh
+# Pull the new image from Docker Hub
+echo "Pulling new image: ${APP_IMAGE}:${APP_TAG}"
+docker pull "${APP_IMAGE}:${APP_TAG}"
+
+# Stop and restart the service with the new image
+echo "Restarting service with docker compose..."
+docker compose up -d
+
+echo "Deployment to production finished."
