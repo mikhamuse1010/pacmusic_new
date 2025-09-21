@@ -1,6 +1,6 @@
-# This is the corrected version of the production deployment workflow.
-# It explicitly passes the DOCKERHUB_USERNAME and DOCKERHUB_TOKEN secrets
-# to the ssh-action, making them available to the deployment script.
+# This is a new debugging version of the workflow.
+# It adds a step at the beginning to verify that the required SSH secrets
+# are being read correctly by the workflow environment.
 name: Deploy Production 🚀
 
 on:
@@ -13,6 +13,14 @@ jobs:
     environment: production
 
     steps:
+      - name: 🕵️‍♂️ Verify Secrets Before Connecting
+        run: |
+          echo "--- STARTING SECRET VERIFICATION ---"
+          echo "Host Secret Exists: ${{ secrets.SSH_HOST_PRODUCTION != '' }}"
+          echo "Username Secret Exists: ${{ secrets.SSH_USER_NAME_PRODUCTION != '' }}"
+          echo "Private Key Secret Exists: ${{ secrets.SSH_PRIVATE_KEY_PRODUCTION != '' }}"
+          echo "--- FINISHED SECRET VERIFICATION ---"
+
       - name: Deploy to production server via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -21,15 +29,9 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY_PRODUCTION }}
           debug: true
           script: |
-            # Navigate to the correct directory first.
+            echo "SSH Connection Successful. Proceeding with deployment..."
             cd /home/ubuntu/production
             
-            # --- DEBUGGING STEP ---
-            # Print the username variable to see what value the workflow is reading.
-            echo "DEBUG: The username from secrets is '${{ secrets.DOCKERHUB_USERNAME }}'"
-            
-            # Execute the deployment script with all secrets and variables
-            # passed directly into its environment. This is the most reliable method.
             DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }} \
             DOCKERHUB_TOKEN=${{ secrets.DOCKERHUB_TOKEN }} \
             APP_IMAGE=${{ secrets.DOCKERHUB_USERNAME }}/pacmusic \
