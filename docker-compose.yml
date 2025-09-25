@@ -58,5 +58,20 @@ services:
       context: ./app
     container_name: pacmusic-2 # Fixed name for easier reference by NGINX
     environment:
-      POSTG...
-[Immersive content redacted for brevity.]
+      POSTGRES_HOST: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+    networks:
+      - pacmusic-network
+    depends_on:
+      - postgres
+
+# Define the named volumes for persistent data.
+volumes:
+  certbot_certs:
+  certbot_www:
+  postgres-data:
+
+networks:
+  pacmusic-network:
