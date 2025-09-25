@@ -1,0 +1,40 @@
+# This file provides the specifics for the STAGING environment.
+services:
+  nginx:
+    container_name: nginx-stg
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.stg.conf:/etc/nginx/nginx.conf
+
+  postgres:
+    container_name: postgres-stg
+    volumes:
+      - staging_postgres-data:/var/lib/postgresql/data
+
+  pacmusic-1:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: pacmusic-stg-1
+    ports:
+      - "${APP_STG_PORT_1}:5000"
+    environment:
+      POSTGRES_HOST: postgres-stg
+
+  pacmusic-2:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: pacmusic-stg-2
+    ports:
+      - "${APP_STG_PORT_2}:5000"
+    environment:
+      POSTGRES_HOST: postgres-stg
+
+volumes:
+  staging_postgres-data:
+
+networks:
+  pacmusic-network:
+    name: staging_pacmusic-network
