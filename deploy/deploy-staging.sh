@@ -18,12 +18,13 @@ EOL
 echo "Pulling latest code from main branch..."
 git pull origin main
 
-# Clean up old containers and networks before starting new ones
-echo "Cleaning up old containers..."
-docker compose -f docker-compose.yml -f docker-compose.stg.yml --project-name staging down --remove-orphans
+# Clean up old containers and networks before starting new ones to prevent conflicts.
+# The --project-name flag creates isolated resources for this environment.
+echo "Cleaning up old staging containers..."
+docker compose -p staging -f docker-compose.yml -f docker-compose.stg.yml down --remove-orphans
 
 # Build and restart all services using the base and staging-specific compose files
 echo "Building and restarting staging services..."
-docker compose -f docker-compose.yml -f docker-compose.stg.yml up --build -d
+docker compose -p staging -f docker-compose.yml -f docker-compose.stg.yml up --build -d
 
 echo "Deployment to staging finished."
