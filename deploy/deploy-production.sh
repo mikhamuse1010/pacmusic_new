@@ -24,6 +24,10 @@ echo "${DOCKERHUB_TOKEN}" | docker login --username "${DOCKERHUB_USERNAME}" --pa
 echo "Pulling new image: ${APP_IMAGE}:${APP_TAG}"
 docker pull "${APP_IMAGE}:${APP_TAG}"
 
+# Clean up old containers and networks before starting new ones
+echo "Cleaning up old containers..."
+docker compose -f docker-compose.yml -f docker-compose.prod.yml --project-name production down --remove-orphans
+
 # Stop and restart all services using the base and production-specific compose files
 echo "Restarting production services..."
 docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
