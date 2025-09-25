@@ -4,11 +4,15 @@
 # It creates dummy certificates first to allow NGINX to start, then obtains
 # real certificates from Let's Encrypt.
 
-# IMPORTANT: Set your domains and email address below.
-domains=(pacmusicmikha.duckdns.org stg-pacmusicmikha.duckdns.org)
+# --- IMPORTANT: ACTION REQUIRED ---
+# Replace the placeholder IP address below with your actual EC2 server's Public IP address.
+# For example, if your IP is 15.134.86.46, the domains should be:
+# domains=(pacmusic.15.134.86.46.nip.io stg.pacmusic.15.134.86.46.nip.io)
+#
+domains=(pacmusic.15.134.86.46.nip.io stg.pacmusic.15.134.86.46.nip.io)
 rsa_key_size=4096
 data_path="./certbot_data"
-email="mikha.kristofer@gmail.com" # Adding a valid address is strongly recommended
+email="mikha.kristofer@example.com" # Adding a valid address is strongly recommended
 staging=0 # Set to 1 if you're testing your setup to avoid hitting rate limits
 
 if [ -d "$data_path" ]; then
