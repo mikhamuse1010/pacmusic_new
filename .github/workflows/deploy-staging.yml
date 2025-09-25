@@ -7,7 +7,6 @@ jobs:
     runs-on: ubuntu-latest
     environment: staging
     steps:
-      - uses: actions/checkout@v4
       - name: Deploy to staging server via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -15,13 +14,16 @@ jobs:
           username: ${{ secrets.SSH_USER_NAME_STAGING }}
           key: ${{ secrets.SSH_PRIVATE_KEY_STAGING }}
           script: |
-            export APP_STG_PORT=${{ secrets.APP_STG_PORT }}
-            export MINIO_STG_ENDPOINT=${{ secrets.MINIO_STG_ENDPOINT }}
-            export MINIO_STG_ACCESS_KEY=${{ secrets.MINIO_STG_ACCESS_KEY }}
-            export MINIO_STG_SECRET_KEY=${{ secrets.MINIO_STG_SECRET_KEY }}
-            cd ${{ vars.APP_STG_PATH }}
+            export MINIO_ENDPOINT=${{ secrets.MINIO_ENDPOINT }}
+            export MINIO_ACCESS_KEY=${{ secrets.MINIO_ACCESS_KEY }}
+            export MINIO_SECRET_KEY=${{ secrets.MINIO_SECRET_KEY }}
+            export POSTGRES_USER=${{ secrets.POSTGRES_USER }}
+            export POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+            export POSTGRES_DB=${{ secrets.POSTGRES_DB }}
+            export APP_STG_PORT_1=${{ vars.APP_STG_PORT_1 }}
+            export APP_STG_PORT_2=${{ vars.APP_STG_PORT_2 }}
+            
+            cd /home/ubuntu/staging
             bash ./deploy/deploy-staging.sh
-      - name: Test deployed application endpoint
-        run: |
-          sleep 10
-          curl -v ${{ secrets.STG_URL }}
+      - name: Test deployed endpoint
+        run: curl ${{ secrets.STG_URL }}

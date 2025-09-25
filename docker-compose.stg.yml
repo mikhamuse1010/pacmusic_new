@@ -1,0 +1,46 @@
+# This file defines the two application instances for the STAGING environment.
+# It now exposes each instance on its own port, as defined by the variables.
+services:
+  pacmusic-1:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: pacmusic-stg-1
+    ports:
+      - "${APP_STG_PORT_1}:5000" # Exposes container on host port 5002
+    networks:
+      - pacmusic-network
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      MINIO_ENDPOINT: ${MINIO_ENDPOINT}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
+    depends_on:
+      - postgres
+
+  pacmusic-2:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: pacmusic-stg-2
+    ports:
+      - "${APP_STG_PORT_2}:5000" # Exposes container on host port 5003
+    networks:
+      - pacmusic-network
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      MINIO_ENDPOINT: ${MINIO_ENDPOINT}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
+    depends_on:
+      - postgres
+
+  nginx:
+    ports:
+      - "80:80" # NGINX is the main entry point on port 80
