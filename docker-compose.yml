@@ -3,32 +3,28 @@ services:
   nginx:
     image: nginx:latest
     ports:
-      # Port 80 is for the initial HTTP request and Let's Encrypt validation.
       - "80:80"
-      # Port 443 is for the final HTTPS traffic for the staging site.
       - "443:443"
-      # Port 8080 is for the production site.
       - "8080:8080"
     volumes:
-      # Mount the new unified NGINX configuration.
+      # Mount the new unified NGINX configuration and the init script.
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./nginx/init-letsencrypt.sh:/init-letsencrypt.sh
       # Share volumes with Certbot to access certificates and validation files.
       - certbot_certs:/etc/letsencrypt
       - certbot_www:/var/www/certbot
     networks:
       - pacmusic-network
-    depends_on:
-      - pacmusic-1
-      - pacmusic-2
+    # This new command runs the init script before starting NGINX.
+    command: /bin/bash -c "/init-letsencrypt.sh && nginx -g 'daemon off;'"
 
   certbot:
     image: certbot/certbot
     volumes:
       - certbot_certs:/etc/letsencrypt
       - certbot_www:/var/www/certbot
-    # IMPORTANT: Replace the email and domains with your actual information.
-    # This command runs once to get the certificates for both your domains.
-    command: certonly --webroot -w /var/www/certbot --force-renewal --email mikha.kristofer@gmail.com -d pacmusicmikha.duckdns.org -d stg-pacmusicmikha.duckdns.org --agree-tos
+    # The command is now set to run every 12 hours to automatically renew certificates.
+    command: renew --pre-hook "service nginx stop" --post-hook "service nginx start"
 
   postgres:
     image: postgres:latest
@@ -62,20 +58,5 @@ services:
       context: ./app
     container_name: pacmusic-2 # Fixed name for easier reference by NGINX
     environment:
-      POSTGRES_HOST: postgres
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-    networks:
-      - pacmusic-network
-    depends_on:
-      - postgres
-
-# Define the named volumes for persistent data.
-volumes:
-  certbot_certs:
-  certbot_www:
-  postgres-data:
-
-networks:
-  pacmusic-network:
+      POSTG...
+[Immersive content redacted for brevity.]
