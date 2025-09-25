@@ -40,3 +40,6 @@ services:
   nginx:
     ports:
       - "8080:80" # NGINX is the main entry point on port 8080
+
+  postgres:
+    container_name: postgres-prod

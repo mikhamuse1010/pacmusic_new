@@ -42,5 +42,9 @@ services:
       - postgres
 
   nginx:
+    container_name: nginx-stg
     ports:
       - "80:80" # NGINX is the main entry point on port 80
+
+  postgres:
+    container_name: postgres-stg

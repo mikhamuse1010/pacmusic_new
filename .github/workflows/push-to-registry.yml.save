@@ -1,0 +1,44 @@
+name: Dev Testing 🔎
+on:
+  pull_request:
+    branches: [ main ]
+jobs:
+  build-and-testing:
+    runs-on: ubuntu-latest
+    environment: dev-testing
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Create .env file for testing
+        run: |
+          cat <<EOL > .env
+          POSTGRES_HOST: localhost
+          POSTGRES_USER=${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB=${{ secrets.POSTGRES_DB }}
+          MINIO_ENDPOINT=${{ secrets.MINIO_ENDPOINT }}
+          MINIO_ACCESS_KEY=${{ secrets.MINIO_ACCESS_KEY }}
+          MINIO_SECRET_KEY=${{ secrets.MINIO_SECRET_KEY }}
+          APP_STG_PORT_1=5002
+          APP_STG_PORT_2=5003
+          EOL
+      - name: Run Docker Compose for testing
+        run: docker compose -f docker-compose.yml -f docker-compose.stg.yml up --build -d
+      - name: Test endpoint
+        run: |
+          sleep 15
+          curl http://localhost
