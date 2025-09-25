@@ -1,3 +1,2 @@
 flask
-minio
 psycopg2-binary
