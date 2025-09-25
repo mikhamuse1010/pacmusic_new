@@ -1,11 +1,14 @@
 name: Dev Testing 🔎
+
 on:
   pull_request:
     branches: [ main ]
+
 jobs:
   build-and-testing:
     runs-on: ubuntu-latest
     environment: dev-testing
+
     services:
       postgres:
         image: postgres:latest
@@ -20,9 +23,11 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
       - name: Create .env file for testing
         run: |
           cat <<EOL > .env
@@ -36,8 +41,10 @@ jobs:
           APP_STG_PORT_1=5002
           APP_STG_PORT_2=5003
           EOL
+
       - name: Run Docker Compose for testing
-        run: docker compose -f docker-compose.yml -f docker-compose.stg.yml up --build -d
+        run: docker compose -p testing -f docker-compose.yml -f docker-compose.stg.yml up --build -d
+
       - name: Test endpoint
         run: |
           sleep 15

@@ -1,18 +1,14 @@
-# This is the base file. It defines the services that are common
-# across all environments: the NGINX load balancer and the PostgreSQL database.
+# This is the base file. It defines the service structures that are common
+# across all environments. Environment-specific files will override these.
 services:
-  # NGINX Load Balancer Service
   nginx:
     image: nginx:latest
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
     networks:
       - pacmusic-network
     depends_on:
       - pacmusic-1
       - pacmusic-2
 
-  # PostgreSQL Database Service
   postgres:
     image: postgres:latest
     environment:
@@ -20,18 +16,33 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      # Mount the initialization script to create tables and data on first run
       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - pacmusic-network
 
-volumes:
-  postgres-data:
-    # This volume will be prefixed with the project name (e.g., staging_postgres-data)
-    # ensuring isolation between environments.
+  pacmusic-1:
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      MINIO_ENDPOINT: ${MINIO_ENDPOINT}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
+    networks:
+      - pacmusic-network
+    depends_on:
+      - postgres
 
-networks:
-  pacmusic-network:
-    # This network will be prefixed with the project name (e.g., staging_pacmusic-network)
-    # ensuring isolation between environments.
-
+  pacmusic-2:
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      MINIO_ENDPOINT: ${MINIO_ENDPOINT}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
+    networks:
+      - pacmusic-network
+    depends_on:
+      - postgres

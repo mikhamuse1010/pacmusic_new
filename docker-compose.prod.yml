@@ -1,45 +1,36 @@
-# This file defines the two application instances for the PRODUCTION environment.
-# It now exposes each instance on its own port, as defined by the variables.
+# This file provides the specifics for the PRODUCTION environment.
 services:
+  nginx:
+    container_name: nginx-prod
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx/nginx.prod.conf:/etc/nginx/nginx.conf
+
+  postgres:
+    container_name: postgres-prod
+    volumes:
+      - production_postgres-data:/var/lib/postgresql/data
+
   pacmusic-1:
     image: "${APP_IMAGE}:${APP_TAG}"
     container_name: pacmusic-prod-1
     ports:
-      - "${APP_PROD_PORT_1}:5000" # Exposes container on host port 5000
-    networks:
-      - pacmusic-network
+      - "${APP_PROD_PORT_1}:5000"
     environment:
-      POSTGRES_HOST: postgres
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-      MINIO_ENDPOINT: ${MINIO_ENDPOINT}
-      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
-      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
-    depends_on:
-      - postgres
+      POSTGRES_HOST: postgres-prod
 
   pacmusic-2:
     image: "${APP_IMAGE}:${APP_TAG}"
     container_name: pacmusic-prod-2
     ports:
-      - "${APP_PROD_PORT_2}:5000" # Exposes container on host port 5001
-    networks:
-      - pacmusic-network
+      - "${APP_PROD_PORT_2}:5000"
     environment:
-      POSTGRES_HOST: postgres
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-      MINIO_ENDPOINT: ${MINIO_ENDPOINT}
-      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
-      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
-    depends_on:
-      - postgres
+      POSTGRES_HOST: postgres-prod
 
-  nginx:
-    ports:
-      - "8080:80" # NGINX is the main entry point on port 8080
+volumes:
+  production_postgres-data:
 
-  postgres:
-    container_name: postgres-prod
+networks:
+  pacmusic-network:
+    name: production_pacmusic-network
