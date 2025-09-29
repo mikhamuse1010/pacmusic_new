@@ -1,0 +1,23 @@
+name: Deploy Staging 🚀
+on:
+  push:
+    branches: [main]
+jobs:
+  deploy-to-staging-server:
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - name: Deploy to staging server via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST_STAGING }}
+          username: ${{ secrets.SSH_USER_NAME_STAGING }}
+          key: ${{ secrets.SSH_PRIVATE_KEY_STAGING }}
+          script: |
+            export POSTGRES_USER=${{ secrets.POSTGRES_USER }}
+            export POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+            export POSTGRES_DB=${{ secrets.POSTGRES_DB }}
+            cd /home/ubuntu/staging
+            bash ./deploy/deploy-staging.sh
+      - name: Test deployed endpoint
+        run: curl -k ${{ secrets.STG_URL }}
