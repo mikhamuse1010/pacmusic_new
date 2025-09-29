@@ -33,10 +33,10 @@ server {
 EOF
 
 echo "### Starting temporary NGINX for validation ..."
-docker compose run --rm --service-ports -d \
-  -v "$data_path/validation-nginx.conf:/etc/nginx/conf.d/default.conf" \
-  -v "$data_path/www:/var/www/certbot" \
-  nginx
+docker run --rm --name temp-nginx -p 80:80 \
+  -v "$PWD/certbot_data/validation-nginx.conf:/etc/nginx/conf.d/default.conf" \
+  -v "$PWD/certbot_data/www:/var/www/certbot" \
+  -d nginx
 
 echo "### Requesting Let's Encrypt certificates ..."
 #Join domains to -d args
@@ -58,7 +58,7 @@ docker compose run --rm certbot certonly --webroot -w /var/www/certbot \
   --force-renewal
   
 echo "### Stopping temporary NGINX ..."
-docker compose down
+docker stop temp-nginx
 
 echo "### Downloading recommended TLS parameters ..."
 mkdir -p "$data_path/conf"
