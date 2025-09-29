@@ -11,9 +11,6 @@ services:
       - ./certbot_data/www:/var/www/certbot
     networks:
       - pacmusic-network
-    depends_on:
-      - pacmusic-1
-      - pacmusic-2
 
   certbot:
     image: certbot/certbot
