@@ -1,13 +1,64 @@
 #!/bin/bash
+# --- IMPORTANT: ACTION REQUIRED ---
+# Replace the placeholder IP address and email below.
+#
 domains=(pacmusic.15.134.86.46.nip.io stg.pacmusic.15.134.86.46.nip.io)
 email="mikha.kristofer@gmail.com"
-rsa_key_size=4096
 data_path="./certbot_data"
-staging=0
 
+# Check for existing data
 if [ -d "$data_path" ]; then
-  echo ">>> Existing data found. Recreating certificates ..."
+  echo ">>> Existing data found. Skipping certificate generation."
+  echo ">>> Starting all services ..."
+  docker compose up -d --build
+  exit 0
 fi
+
+echo "### Creating temporary files for initial validation ..."
+mkdir -p "$data_path/www"
+# Create a temporary NGINX config for validation
+cat > "$data_path/validation-nginx.conf" <<EOF
+server {
+    listen 80;
+    server_name ${domains[0]} ${domains[1]};
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    location / {
+        return 404;
+    }
+}
+EOF
+
+echo "### Starting temporary NGINX for validation ..."
+docker compose run --rm --service-ports -d \
+  -v "$data_path/validation-nginx.conf:/etc/nginx/conf.d/default.conf" \
+  -v "$data_path/www:/var/www/certbot" \
+  nginx
+
+echo "### Requesting Let's Encrypt certificates ..."
+#Join domains to -d args
+domain_args=""
+for domain in "${domains[@]}"; do
+  domain_args="$domain_args -d $domain"
+done
+
+# Select appropriate email arg
+case "$email" in
+  "") email_arg="--register-unsafely-without-email" ;;
+  *) email_arg="--email $email" ;;
+esac
+
+docker compose run --rm certbot certonly --webroot -w /var/www/certbot \
+  $email_arg \
+  $domain_args \
+  --agree-tos \
+  --force-renewal
+  
+echo "### Stopping temporary NGINX ..."
+docker compose down
 
 echo "### Downloading recommended TLS parameters ..."
 mkdir -p "$data_path/conf"
@@ -15,47 +66,5 @@ curl -s "https://raw.githubusercontent.com/certbot/certbot/master/certbot-nginx/
 curl -s "https://raw.githubusercontent.com/certbot/certbot/master/certbot/certbot/ssl-dhparams.pem" > "$data_path/conf/ssl-dhparams.pem"
 echo
 
-echo "### Creating dummy certificates for all domains ..."
-for domain in "${domains[@]}"; do
-  path="/etc/letsencrypt/live/$domain"
-  mkdir -p "$data_path/conf/live/$domain"
-  docker compose run --rm --entrypoint "\
-    openssl req -x509 -nodes -newkey rsa:$rsa_key_size -days 1\
-      -keyout '$path/privkey.pem' \
-      -out '$path/fullchain.pem' \
-      -subj '/CN=localhost'" certbot
-done
-echo
-
-echo "### Starting nginx ..."
-docker compose up --force-recreate -d nginx
-echo
-
-echo "### Deleting dummy certificates for all domains ..."
-for domain in "${domains[@]}"; do
-    docker compose run --rm --entrypoint "\
-      rm -Rf /etc/letsencrypt/live/$domain" certbot
-done
-echo
-
-echo "### Requesting Let's Encrypt certificates for all domains ..."
-domain_args=""
-for domain in "${domains[@]}"; do
-  domain_args="$domain_args -d $domain"
-done
-case "$email" in
-  "") email_arg="--register-unsafely-without-email" ;;
-  *) email_arg="--email $email" ;;
-esac
-if [ $staging != "0" ]; then staging_arg="--staging"; fi
-docker compose run --rm --entrypoint "\
-  certbot certonly --webroot -w /var/www/certbot \
-    $staging_arg $email_arg $domain_args \
-    --rsa-key-size $rsa_key_size --agree-tos --force-renewal" certbot
-echo
-
-echo "### Reloading nginx ..."
-docker compose exec nginx nginx -s reload
-
-echo "### Starting all services for the first time ..."
+echo "### Starting final application stack ..."
 docker compose up -d --build
