@@ -1,6 +1,6 @@
 #!/bin/bash
 domains=(pacmusic.15.134.86.46.nip.io stg.pacmusic.15.134.86.46.nip.io)
-email="mikha.kristofer@example.com"
+email="mikha.kristofer@gmail.com"
 rsa_key_size=4096
 data_path="./certbot_data"
 staging=0
